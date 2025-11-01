@@ -174,6 +174,21 @@ QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 qemu: check-qemu-version $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
 
+DOCKER_IMG = xv6-riscv-build-env
+DOCKER_RUN = docker run -it --rm -v $(shell pwd):/xv6-riscv $(DOCKER_IMG)
+
+docker-build:
+	docker build -t $(DOCKER_IMG) .
+
+docker-clean: docker-build
+	$(DOCKER_RUN) make clean
+
+docker-qemu: docker-build
+	$(DOCKER_RUN) make qemu
+
+docker-qemu-gdb: docker-build
+	$(DOCKER_RUN) qemu-gdb
+
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
